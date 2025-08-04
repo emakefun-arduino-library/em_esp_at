@@ -11,11 +11,8 @@ namespace em {
 EspAtMqtt::EspAtMqtt(Stream& stream) : stream_(stream) {
 }
 
-esp_at::ResultCode EspAtMqtt::UserConfig(const ConnectionScheme scheme,
-                                         const String& client_id,
-                                         const String& username,
-                                         const String& password,
-                                         const String& path) {
+esp_at::ResultCode EspAtMqtt::UserConfig(
+    const ConnectionScheme scheme, const String& client_id, const String& username, const String& password, const String& path) {
   /**
    * AT+MQTTUSERCFG=<LinkID>,<scheme>,<"client_id">,<"username">,<"password">,<cert_key_ID>,<CA_ID>,<"path">
    * <LinkID>：当前仅支持 link ID 0。
@@ -105,8 +102,7 @@ esp_at::ResultCode EspAtMqtt::Public(const String& topic, const String& data, co
   return Public(topic, data.begin(), data.length(), qos, retain);
 }
 
-esp_at::ResultCode EspAtMqtt::Public(
-    const String& topic, const uint8_t* data, const uint16_t length, const uint16_t qos, bool retain) {
+esp_at::ResultCode EspAtMqtt::Public(const String& topic, const uint8_t* data, const uint16_t length, const uint16_t qos, bool retain) {
   const auto cmd = FormatString(F("AT+MQTTPUBRAW=0,"
                                   "\"%s\","       // topic
                                   "%" PRIu16 ","  // length
@@ -174,25 +170,12 @@ esp_at::ResultCode EspAtMqtt::Subscribe(const String& topic, const uint16_t qos)
 }
 
 EspAtMqtt::ReceivedData EspAtMqtt::Receive() {
-  EspAtMqtt::ReceivedData received_data;
   String header(F("+MQTTSUBRECV:0,\""));
-
-  while (true) {
-    if (stream_.available() < header.length()) {
-      return {};
-    }
-
-    if (stream_.peek() == header[0]) {
-      break;
-    } else {
-      stream_.read();
-    }
-  }
-
-  if (!FindUtil(stream_, header, 100)) {
+  if (!stream_.find((char*)header.c_str())) {
     return {};
   }
 
+  EspAtMqtt::ReceivedData received_data;
   received_data.topic = stream_.readStringUntil('\"');
   if (!SkipNext(stream_, ',')) {
     return {};
@@ -203,17 +186,10 @@ EspAtMqtt::ReceivedData EspAtMqtt::Receive() {
     return {};
   }
 
+  received_data.length = length;
+
   if (!SkipNext(stream_, ',')) {
     return {};
-  }
-
-  while (received_data.content.length() < length) {
-    char c;
-    if (1 == stream_.readBytes(&c, 1)) {
-      received_data.content += c;
-    } else {
-      return {};
-    }
   }
 
   return received_data;

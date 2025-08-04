@@ -32,12 +32,12 @@ esp_at::ResultCode EspAtManager::Init() {
     return esp_at::ResultCode::kError;
   }
 
-  stream_.println(F("AT+CIPMUX=1"));
-  index = FindUtil(stream_, targets, sizeof(targets) / sizeof(targets[0]), 1000);
-  CLOGD("AT+CIPMUX=1: %" PRId16, index);
-  if (index != 0) {
-    return esp_at::ResultCode::kError;
-  }
+  // stream_.println(F("AT+CIPMUX=1"));
+  // index = FindUtil(stream_, targets, sizeof(targets) / sizeof(targets[0]), 1000);
+  // CLOGD("AT+CIPMUX=1: %" PRId16, index);
+  // if (index != 0) {
+  //   return esp_at::ResultCode::kError;
+  // }
 
   stream_.println(F("AT+CIPDINFO=1"));
   index = FindUtil(stream_, targets, sizeof(targets) / sizeof(targets[0]), 1000);
@@ -60,12 +60,12 @@ esp_at::ResultCode EspAtManager::Init() {
     return esp_at::ResultCode::kError;
   }
 
-  stream_.println(F("AT+CIPRECVTYPE=5,1"));
-  index = FindUtil(stream_, targets, sizeof(targets) / sizeof(targets[0]), 1000);
-  CLOGD("AT+CIPRECVTYPE=5,1: %" PRId16, index);
-  if (index != 0) {
-    return esp_at::ResultCode::kError;
-  }
+  // stream_.println(F("AT+CIPRECVTYPE=5,1"));
+  // index = FindUtil(stream_, targets, sizeof(targets) / sizeof(targets[0]), 1000);
+  // CLOGD("AT+CIPRECVTYPE=5,1: %" PRId16, index);
+  // if (index != 0) {
+  //   return esp_at::ResultCode::kError;
+  // }
 
   return esp_at::ResultCode::kOK;
 }

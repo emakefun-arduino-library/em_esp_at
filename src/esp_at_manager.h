@@ -10,6 +10,7 @@
 #include <WString.h>
 
 #include "esp_at_mqtt.h"
+#include "esp_at_tcpip.h"
 #include "esp_at_wifi.h"
 #include "result_code.h"
 
@@ -23,11 +24,24 @@ class EspAtManager {
   esp_at::ResultCode Init();
 
   EspAtWifi& Wifi() {
-    return wifi_;
+    if (wifi_ == nullptr) {
+      wifi_ = new EspAtWifi(stream_);
+    }
+    return *wifi_;
   }
 
   EspAtMqtt& Mqtt() {
-    return mqtt_;
+    if (mqtt_ == nullptr) {
+      mqtt_ = new EspAtMqtt(stream_);
+    }
+    return *mqtt_;
+  }
+
+  EspAtTcpip& Tcpip() {
+    if (tcpip_ == nullptr) {
+      tcpip_ = new EspAtTcpip(stream_);
+    }
+    return *tcpip_;
   }
 
  private:
@@ -38,8 +52,9 @@ class EspAtManager {
   bool CancelSend();
 
   Stream& stream_;
-  EspAtMqtt mqtt_;
-  EspAtWifi wifi_;
+  EspAtMqtt* mqtt_ = nullptr;
+  EspAtWifi* wifi_ = nullptr;
+  EspAtTcpip* tcpip_ = nullptr;
 };
 }  // namespace em
 #endif

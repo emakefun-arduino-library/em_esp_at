@@ -4,6 +4,7 @@
 #define _EM_ESP_AT_MQTT_H_
 
 #include <Arduino.h>
+#include <Stream.h>
 
 #include "result_code.h"
 
@@ -25,7 +26,7 @@ class EspAtMqtt {
 
   struct ReceivedData {
     String topic;
-    String content;
+    uint16_t length = 0;
   };
 
   EspAtMqtt(Stream& stream);
@@ -42,6 +43,7 @@ class EspAtMqtt {
       const String& topic, const uint8_t* data, const uint16_t length, const uint16_t qos = 0, bool retain = true);
   esp_at::ResultCode Subscribe(const String& topic, const uint16_t qos = 0);
   ReceivedData Receive();
+  Stream& GetStream() { return stream_; }
 
  private:
   Stream& stream_;

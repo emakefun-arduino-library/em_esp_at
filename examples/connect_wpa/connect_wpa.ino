@@ -5,13 +5,13 @@
 #define WIFI_PASSWD F("501416wf")
 
 namespace {
-SoftwareSerial g_serial(5, 6);  // RX, TX
-em::EspAtManager g_esp_at_manager(g_serial);
+SoftwareSerial g_at_serial(5, 6);  // RX, TX
+em::EspAtManager g_esp_at_manager(g_at_serial);
 }  // namespace
 
 void setup() {
   Serial.begin(115200);
-  g_serial.begin(9600);
+  g_at_serial.begin(9600);
 
   auto err = em::esp_at::ResultCode::kOK;
 

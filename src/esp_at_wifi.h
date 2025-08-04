@@ -16,10 +16,7 @@ class EspAtWifi {
   esp_at::ResultCode ConnectWifi(const String& ssid, const String& password);
   esp_at::ResultCode Ip(String* const ip, String* const gateway = nullptr, String* const netmask = nullptr);
   esp_at::ResultCode Mac(String* const mac);
-  esp_at::ResultCode ApInfo(String* const ssid,
-                            String* const bssid = nullptr,
-                            uint16_t* const channel = nullptr,
-                            int16_t* const rssi = nullptr);
+  esp_at::ResultCode ApInfo(String* const ssid, String* const bssid = nullptr, uint16_t* const channel = nullptr, int16_t* const rssi = nullptr);
 
  private:
   Stream& stream_;
