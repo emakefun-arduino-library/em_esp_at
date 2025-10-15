@@ -7,67 +7,65 @@
 #define WIFI_PASSWD F("501416wf")
 
 namespace {
-SoftwareSerial g_at_serial(5, 6);  // RX, TX
-em::EspAtManager g_esp_at_manager(g_at_serial);
-uint16_t ID() {
-  const auto hour = atoi(__TIME__);
-  const auto minute = atoi(__TIME__ + 3);
-  const auto second = atoi(__TIME__ + 6);
-  const auto seed = hour * 3600 + minute * 60 + second;
-  randomSeed(seed);
-  return random(0xFFFF);
-}
+constexpr uint8_t kLedPin = 13;
 
-const String kTestTopic = String("emakefun/sensor/") + ID() + "/timestamp";
+constexpr uint16_t kTcpServerPort = 1234;
+const String kTcpServerHost = "192.168.8.116";
+
+SoftwareSerial g_debug_serial(6, 5);  // RX, TX
+em::EspAtManager g_esp_at_manager(Serial);
 }  // namespace
 
 void setup() {
-  Serial.begin(115200);
-  g_at_serial.begin(9600);
-  auto ret = em::esp_at::ResultCode::kOK;
+  pinMode(kLedPin, OUTPUT);
 
-  Serial.println(F("module init"));
-  ret = g_esp_at_manager.Init();
-  if (ret != em::esp_at::ResultCode::kOK) {
-    Serial.print(F("module init failed: "));
-    Serial.println(em::esp_at::ToString(ret));
+  g_debug_serial.begin(115200);
+  Serial.begin(115200);
+
+  auto result = em::esp_at::ResultCode::kOK;
+
+  g_debug_serial.println(F("module init"));
+  result = g_esp_at_manager.Init();
+  if (result != em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("module init failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
     while (true);
   }
 
   auto wifi = g_esp_at_manager.Wifi();
-  Serial.println(F("wifi connecting..."));
-  ret = wifi.ConnectWifi(WIFI_SSID, WIFI_PASSWD);
-  if (ret != em::esp_at::ResultCode::kOK) {
-    Serial.print(F("wifi connect failed: "));
-    Serial.println(em::esp_at::ToString(ret));
+  g_debug_serial.println(F("wifi connecting..."));
+  result = wifi.ConnectWifi(WIFI_SSID, WIFI_PASSWD);
+  if (result != em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("wifi connect failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
     while (true);
   }
 
-  Serial.println(F("wifi connected"));
+  g_debug_serial.println(F("wifi connected"));
   String ip;
   String gateway;
   String netmask;
-  em::esp_at::ResultCode err = wifi.Ip(&ip, &gateway, &netmask);
-  if (err == em::esp_at::ResultCode::kOK) {
-    Serial.print("ip: ");
-    Serial.println(ip);
-    Serial.print("gateway: ");
-    Serial.println(gateway);
-    Serial.print("netmask: ");
-    Serial.println(netmask);
+  result = wifi.Ip(&ip, &gateway, &netmask);
+  if (result == em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("ip: "));
+    g_debug_serial.println(ip);
+    g_debug_serial.print(F("gateway: "));
+    g_debug_serial.println(gateway);
+    g_debug_serial.print(F("netmask: "));
+    g_debug_serial.println(netmask);
   } else {
-    Serial.print("wifi ip failed: ");
-    Serial.println(em::esp_at::ToString(err));
+    g_debug_serial.print(F("wifi ip failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
   }
 
-  Serial.println("connect tcp...");
-  ret = g_esp_at_manager.Tcpip().ConnectTcp("192.168.8.116", 1234);
-  if (ret != em::esp_at::ResultCode::kOK) {
-    Serial.print(F("tcp connect failed: "));
-    Serial.println(em::esp_at::ToString(ret));
+  g_debug_serial.println(F("connect tcp..."));
+  result = g_esp_at_manager.Tcpip().ConnectTcp(kTcpServerHost, kTcpServerPort);
+  if (result != em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("tcp connect failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
     while (true);
   }
-  Serial.println(F("tcp connected"));
+  g_debug_serial.println(F("tcp connected"));
 
   String type;
   String remote_host;
@@ -75,23 +73,23 @@ void setup() {
   uint16_t local_port = 0;
   bool client = false;
 
-  ret = g_esp_at_manager.Tcpip().State(&type, &remote_host, &remote_port, &local_port, &client);
-  if (ret != em::esp_at::ResultCode::kOK) {
-    Serial.print(F("tcp get state failed: "));
-    Serial.println(em::esp_at::ToString(ret));
+  result = g_esp_at_manager.Tcpip().State(&type, &remote_host, &remote_port, &local_port, &client);
+  if (result != em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("tcp get state failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
     while (true);
   }
 
-  Serial.print(F("type: "));
-  Serial.println(type);
-  Serial.print(F("remote_host: "));
-  Serial.println(remote_host);
-  Serial.print(F("remote_port: "));
-  Serial.println(remote_port);
-  Serial.print(F("local_port: "));
-  Serial.println(local_port);
-  Serial.print(F("client: "));
-  Serial.println(client);
+  g_debug_serial.print(F("type: "));
+  g_debug_serial.println(type);
+  g_debug_serial.print(F("remote_host: "));
+  g_debug_serial.println(remote_host);
+  g_debug_serial.print(F("remote_port: "));
+  g_debug_serial.println(remote_port);
+  g_debug_serial.print(F("local_port: "));
+  g_debug_serial.println(local_port);
+  g_debug_serial.print(F("client: "));
+  g_debug_serial.println(client);
 }
 
 void loop() {
@@ -100,28 +98,40 @@ void loop() {
 
   auto received_data = tcpip.Receive();
   if (received_data.length > 0) {
-    Serial.print(F("received from: "));
-    Serial.print(received_data.remote_host);
-    Serial.print(':');
-    Serial.print(received_data.remote_port);
-    Serial.print(F(", length: "));
-    Serial.print(received_data.length);
+    g_debug_serial.print(F("received from: "));
+    g_debug_serial.print(received_data.remote_host);
+    g_debug_serial.print(':');
+    g_debug_serial.print(received_data.remote_port);
+    g_debug_serial.print(F(", length: "));
+    g_debug_serial.print(received_data.length);
 
-    Serial.print(F(", received data: "));
-    while (received_data.length > 0) {
+    g_debug_serial.print(F(", received data: "));
+    uint16_t remaining_length = received_data.length;
+    String content = "";
+    while (remaining_length > 0) {
       if (tcpip.GetStream().available() > 0) {
-        Serial.print(char(tcpip.GetStream().read()));
-        received_data.length--;
+        content += char(tcpip.GetStream().read());
+        remaining_length--;
       }
     }
-    Serial.println();
+    g_debug_serial.println(content);
+
+    if (received_data.remote_host == kTcpServerHost && received_data.remote_port == kTcpServerPort && content.length() == received_data.length) {
+      if (content == "led on") {
+        digitalWrite(kLedPin, HIGH);
+        g_debug_serial.println(F("LED ON"));
+      } else if (content == "led off") {
+        digitalWrite(kLedPin, LOW);
+        g_debug_serial.println(F("LED OFF"));
+      }
+    }
   }
 
   static auto s_last_send_time = millis();
   if (millis() - s_last_send_time > 500) {
-    String content = String(F("test message with timestamp:")) + s_last_send_time + "\n";
-    Serial.print(F("send content: "));
-    Serial.println(content);
+    String content = (digitalRead(kLedPin) == HIGH) ? "led off" : "led on";
+    g_debug_serial.print(F("send content: "));
+    g_debug_serial.println(content);
     tcpip.Send(content.c_str(), content.length());
     s_last_send_time = millis();
   }
