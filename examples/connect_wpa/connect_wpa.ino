@@ -5,11 +5,15 @@
 #define WIFI_PASSWD F("501416wf")
 
 namespace {
+constexpr uint8_t kLedPin = 13;
+
 SoftwareSerial g_debug_serial(6, 5);  // RX, TX
 em::EspAtManager g_esp_at_manager(Serial);
 }  // namespace
 
 void setup() {
+  pinMode(kLedPin, OUTPUT);
+
   g_debug_serial.begin(115200);
   Serial.begin(115200);
 
@@ -33,6 +37,7 @@ void setup() {
   }
 
   g_debug_serial.println(F("wifi connected"));
+  digitalWrite(kLedPin, HIGH);
 }
 
 void loop() {
@@ -77,9 +82,11 @@ void loop() {
     g_debug_serial.println(channel);
     g_debug_serial.print(F("rssi: "));
     g_debug_serial.println(rssi);
+    digitalWrite(kLedPin, HIGH);
   } else {
     g_debug_serial.print(F("wifi ap info failed: "));
     g_debug_serial.println(em::esp_at::ToString(result));
+    digitalWrite(kLedPin, LOW);
   }
 
   delay(1000);
