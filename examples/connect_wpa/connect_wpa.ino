@@ -5,34 +5,34 @@
 #define WIFI_PASSWD F("501416wf")
 
 namespace {
-SoftwareSerial g_at_serial(5, 6);  // RX, TX
-em::EspAtManager g_esp_at_manager(g_at_serial);
+SoftwareSerial g_debug_serial(6, 5);  // RX, TX
+em::EspAtManager g_esp_at_manager(Serial);
 }  // namespace
 
 void setup() {
+  g_debug_serial.begin(115200);
   Serial.begin(115200);
-  g_at_serial.begin(9600);
 
-  auto err = em::esp_at::ResultCode::kOK;
+  auto result = em::esp_at::ResultCode::kOK;
 
-  Serial.println("module init");
-  err = g_esp_at_manager.Init();
-  if (err != em::esp_at::ResultCode::kOK) {
-    Serial.print("module init failed: ");
-    Serial.println(em::esp_at::ToString(err));
+  g_debug_serial.println(F("module init"));
+  result = g_esp_at_manager.Init();
+  if (result != em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("module init failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
     while (true);
   }
 
   auto wifi = g_esp_at_manager.Wifi();
-  Serial.println("wifi connecting...");
-  err = wifi.ConnectWifi(WIFI_SSID, WIFI_PASSWD);
-  if (err != em::esp_at::ResultCode::kOK) {
-    Serial.print("wifi connect failed: ");
-    Serial.println(em::esp_at::ToString(err));
+  g_debug_serial.println(F("wifi connecting..."));
+  result = wifi.ConnectWifi(WIFI_SSID, WIFI_PASSWD);
+  if (result != em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("wifi connect failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
     while (true);
   }
 
-  Serial.println("wifi connected");
+  g_debug_serial.println(F("wifi connected"));
 }
 
 void loop() {
@@ -40,46 +40,46 @@ void loop() {
   String ip;
   String gateway;
   String netmask;
-  em::esp_at::ResultCode err = wifi.Ip(&ip, &gateway, &netmask);
-  if (err == em::esp_at::ResultCode::kOK) {
-    Serial.print("ip: ");
-    Serial.println(ip);
-    Serial.print("gateway: ");
-    Serial.println(gateway);
-    Serial.print("netmask: ");
-    Serial.println(netmask);
+  em::esp_at::ResultCode result = wifi.Ip(&ip, &gateway, &netmask);
+  if (result == em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("ip: "));
+    g_debug_serial.println(ip);
+    g_debug_serial.print(F("gateway: "));
+    g_debug_serial.println(gateway);
+    g_debug_serial.print(F("netmask: "));
+    g_debug_serial.println(netmask);
   } else {
-    Serial.print("wifi ip failed: ");
-    Serial.println(em::esp_at::ToString(err));
+    g_debug_serial.print(F("wifi ip failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
   }
 
   String mac;
-  err = wifi.Mac(&mac);
-  if (err == em::esp_at::ResultCode::kOK) {
-    Serial.print("mac: ");
-    Serial.println(mac);
+  result = wifi.Mac(&mac);
+  if (result == em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("mac: "));
+    g_debug_serial.println(mac);
   } else {
-    Serial.print("wifi mac failed: ");
-    Serial.println(em::esp_at::ToString(err));
+    g_debug_serial.print(F("wifi mac failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
   }
 
   String ssid;
   String bssid;
   uint16_t channel;
   int16_t rssi;
-  err = wifi.ApInfo(&ssid, &bssid, &channel, &rssi);
-  if (err == em::esp_at::ResultCode::kOK) {
-    Serial.print("ssid: ");
-    Serial.println(ssid);
-    Serial.print("bssid: ");
-    Serial.println(bssid);
-    Serial.print("channel: ");
-    Serial.println(channel);
-    Serial.print("rssi: ");
-    Serial.println(rssi);
+  result = wifi.ApInfo(&ssid, &bssid, &channel, &rssi);
+  if (result == em::esp_at::ResultCode::kOK) {
+    g_debug_serial.print(F("ssid: "));
+    g_debug_serial.println(ssid);
+    g_debug_serial.print(F("bssid: "));
+    g_debug_serial.println(bssid);
+    g_debug_serial.print(F("channel: "));
+    g_debug_serial.println(channel);
+    g_debug_serial.print(F("rssi: "));
+    g_debug_serial.println(rssi);
   } else {
-    Serial.print("wifi ap info failed: ");
-    Serial.println(em::esp_at::ToString(err));
+    g_debug_serial.print(F("wifi ap info failed: "));
+    g_debug_serial.println(em::esp_at::ToString(result));
   }
 
   delay(1000);
